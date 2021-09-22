@@ -1,19 +1,20 @@
-function addTask(event){
-    const currentSection = event.target.parentElement;
+function handleSubmitClick(event){
+    const clickedElement = event.target;
+    if(clickedElement.classList.contains("submit-buttons")){
+        addTask(clickedElement);
+    }
+}
+
+function addTask(button){
+    const currentSection = button.parentElement;
     const newTaskValue = currentSection.querySelector("input").value;
-    const newTask = createElement("div",[newTaskValue]);
+    const newTask = createElement("div", [newTaskValue], ["task"]);
     const taskList = currentSection.querySelector("ul");
     taskList.appendChild(newTask);
 }
 
-const addToDoButton = document.querySelector("#submit-add-to-do");
-addToDoButton.addEventListener("click", addTask);
-
-const addInProgressButton = document.querySelector("#submit-add-in-progress");
-addInProgressButton.addEventListener("click", addTask);
-
-const addDoneButton = document.querySelector("#submit-add-done");
-addDoneButton.addEventListener("click", addTask);
+const taskSections = document.querySelector("#task-sections");
+taskSections.addEventListener("click", handleSubmitClick);
 
 /**
  * Creates a new DOM element.
