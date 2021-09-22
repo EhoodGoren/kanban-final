@@ -1,0 +1,13 @@
+header {
+    text-align: center;
+}
+
+.sections {
+    border: 2px solid;
+    margin-right: 50px;
+}
+
+#task-sections {
+    margin: 0 auto;
+    margin-top: 50px;
+}
