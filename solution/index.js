@@ -11,7 +11,27 @@ function addTask(button){
     const newTask = createElement("div", [newTaskValue], ["task"]);
     const taskList = currentSection.querySelector("ul");
     taskList.appendChild(newTask);
+    addToLocalStorage(taskList, newTaskValue);
 }
+
+function addToLocalStorage(taskList, task){
+    const taskListClasses = taskList.classList;
+    const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    if(taskListClasses.contains("to-do-tasks")){
+        localStorageTasks.todo.unshift(task);
+    } else if(taskListClasses.contains("in-progress-tasks")){
+        localStorageTasks["in-progress"].unshift(task);
+    } else if(taskListClasses.contains("done-tasks")){
+        localStorageTasks.done.unshift(task);
+    }
+    localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
+}
+
+localStorage.setItem("tasks", JSON.stringify({
+        "todo": [],
+        "in-progress": [],
+        "done": []
+    }));
 
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
