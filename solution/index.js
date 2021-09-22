@@ -5,21 +5,56 @@ function handleSubmitClick(event){
     }
 }
 
-function addTask(button){
-    const currentSection = button.parentElement;
-    const newTaskValue = currentSection.querySelector("input").value;
-    const newTask = createElement("li", [newTaskValue], ["task"]);
-    const taskList = currentSection.querySelector("ul");
-    taskList.appendChild(newTask);
-    addToLocalStorage(taskList, newTaskValue);
-}
-
-function addToLocalStorage(taskList, task){
-    const taskListClasses = taskList.classList;
+function generateTasks(){
+    // Checks if tasks is empty.
     let localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
     if(localStorageTasks===null){
         localStorageTasks={"todo":[], "in-progress":[], "done":[]}
+        localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
     }
+
+    const { todo, "in-progress":inProgress, done } = localStorageTasks;
+    const taskLists = document.querySelectorAll(".sections > ul");
+    for(let tasks of todo){
+        const newTask = createElement("li", [tasks], ["task"]);
+        taskLists[0].insertBefore(newTask, taskLists[0].firstChild);
+    }
+    for(let tasks of inProgress){
+        const newTask = createElement("li", [tasks], ["task"]);
+        taskLists[1].insertBefore(newTask, taskLists[1].firstChild);
+    }
+    for(let tasks of done){
+        const newTask = createElement("li", [tasks], ["task"]);
+        taskLists[2].insertBefore(newTask, taskLists[2].firstChild);
+    }
+    /*for(let list in arguments){
+        const currentList = taskLists.querySelectorAll("ul")
+        for(let tasks of list){
+            const 
+        }
+    }*/
+}
+
+function clearExistingTasks(){
+    const existingTasks = document.querySelectorAll(".sections .task");
+    for(let tasks of existingTasks){
+        tasks.remove();
+    }
+}
+
+function addTask(button){
+    // Clears all existing tasks
+    clearExistingTasks();
+    const currentSection = button.parentElement;
+    const newTaskValue = currentSection.querySelector("input").value;
+    const taskList = currentSection.querySelector("ul");
+    addToLocalStorage(taskList, newTaskValue);
+    generateTasks();
+}
+
+function addToLocalStorage(taskList, task){
+    const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    const taskListClasses = taskList.classList;
     if(taskListClasses.contains("to-do-tasks")){
         localStorageTasks.todo.unshift(task);
     } else if(taskListClasses.contains("in-progress-tasks")){
@@ -30,6 +65,7 @@ function addToLocalStorage(taskList, task){
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
 
+generateTasks();
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
 
