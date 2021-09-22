@@ -8,7 +8,7 @@ function handleSubmitClick(event){
 function addTask(button){
     const currentSection = button.parentElement;
     const newTaskValue = currentSection.querySelector("input").value;
-    const newTask = createElement("div", [newTaskValue], ["task"]);
+    const newTask = createElement("li", [newTaskValue], ["task"]);
     const taskList = currentSection.querySelector("ul");
     taskList.appendChild(newTask);
     addToLocalStorage(taskList, newTaskValue);
@@ -16,7 +16,10 @@ function addTask(button){
 
 function addToLocalStorage(taskList, task){
     const taskListClasses = taskList.classList;
-    const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    let localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    if(localStorageTasks===null){
+        localStorageTasks={"todo":[], "in-progress":[], "done":[]}
+    }
     if(taskListClasses.contains("to-do-tasks")){
         localStorageTasks.todo.unshift(task);
     } else if(taskListClasses.contains("in-progress-tasks")){
@@ -26,12 +29,6 @@ function addToLocalStorage(taskList, task){
     }
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
-
-localStorage.setItem("tasks", JSON.stringify({
-        "todo": [],
-        "in-progress": [],
-        "done": []
-    }));
 
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
