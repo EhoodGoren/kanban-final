@@ -15,15 +15,15 @@ function generateTasks(){
 
     const { todo, "in-progress":inProgress, done } = localStorageTasks;
     const taskLists = document.querySelectorAll(".sections > ul");
-    for(let tasks of todo){
+    for(let tasks of todo.reverse()){
         const newTask = createElement("li", [tasks], ["task"]);
         taskLists[0].insertBefore(newTask, taskLists[0].firstChild);
     }
-    for(let tasks of inProgress){
+    for(let tasks of inProgress.reverse()){
         const newTask = createElement("li", [tasks], ["task"]);
         taskLists[1].insertBefore(newTask, taskLists[1].firstChild);
     }
-    for(let tasks of done){
+    for(let tasks of done.reverse()){
         const newTask = createElement("li", [tasks], ["task"]);
         taskLists[2].insertBefore(newTask, taskLists[2].firstChild);
     }
