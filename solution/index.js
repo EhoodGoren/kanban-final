@@ -27,6 +27,10 @@ function generateTasks(){
         const newTask = createElement("li", [tasks], ["task"]);
         taskLists[2].insertBefore(newTask, taskLists[2].firstChild);
     }
+    const allTasks = document.querySelectorAll(".task");
+    for(let task of allTasks){
+        task.style.border = "2px solid";
+    }
     /*for(let list in arguments){
         const currentList = taskLists.querySelectorAll("ul")
         for(let tasks of list){
@@ -65,9 +69,40 @@ function addToLocalStorage(taskList, task){
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
 
+function mouseOverList(event){
+    const currentTask = event.target;
+    if(!(currentTask.tagName === "LI")){
+        return;
+    }
+    document.addEventListener("keydown", keyPress);
+    currentTask.addEventListener("mouseleave", () =>{
+        document.removeEventListener("keydown", keyPress);
+    })
+}
+function keyPress(event){
+    if(!event.altKey){
+        return;
+    }
+    else{
+        event.preventDefault();
+    }
+    switch(event.key){
+        case "1":
+            console.log("1");
+            break;
+        case "2":
+            console.log("2");
+            break;
+        case "3":
+            console.log("3");
+            break;
+    }
+}
+
 generateTasks();
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
+taskSections.addEventListener("mouseover", mouseOverList);
 
 /**
  * Creates a new DOM element.
