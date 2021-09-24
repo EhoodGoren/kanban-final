@@ -126,6 +126,7 @@ function checkSameList(currentList, newList){
 }
 
 function moveTask(task, newListNum){
+    removeCurrentTask(task)
     const taskSections = document.querySelectorAll(".sections");
     newListIndex = parseInt(newListNum)-1;
     const newList = taskSections[newListIndex].querySelector("ul");
@@ -133,7 +134,42 @@ function moveTask(task, newListNum){
     generateTasks();
 }
 
+function removeCurrentTask(task){
+    const listOfTaskNum = task.parentElement.getAttribute("data-list");
+    const listOfTask = listAsArray(listOfTaskNum);
+    const taskIndexInList = listOfTask.indexOf(task);
+    const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    switch(listOfTaskNum){
+        case "0":
+            localStorageTasks.todo.splice(taskIndexInList, 1);
+            break;
+        case "1":
+            localStorageTasks["in-progress"].splice(taskIndexInList, 1);
+            break;
+        case "2":
+            localStorageTasks.done.splice(taskIndexInList, 1);
+            break;
+    }
+    localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
+}
+
+function listAsArray(index){
+    const taskLists = document.querySelectorAll(".sections > ul");
+    const selectedList = taskLists[index].querySelectorAll(".task");
+    return [...selectedList];
+}
+
+function addIndexToLists(){
+    const taskLists = document.querySelectorAll(".sections > ul");
+    let listIndex=0;
+    for(let lists of taskLists){
+        lists.setAttribute("data-list", listIndex);
+        listIndex++;
+    }
+}
+
 generateTasks();
+addIndexToLists();
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
 taskSections.addEventListener("mouseover", mouseOverList);
