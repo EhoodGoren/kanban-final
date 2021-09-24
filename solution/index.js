@@ -1,7 +1,7 @@
 function handleSubmitClick(event){
     const clickedElement = event.target;
     if(clickedElement.classList.contains("submit-buttons")){
-        addTask(clickedElement);
+        addNewTask(clickedElement);
     }
 }
 
@@ -12,7 +12,7 @@ function generateTasks(){
         localStorageTasks={"todo":[], "in-progress":[], "done":[]}
         localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
     }
-
+    clearExistingTasks();
     const { todo, "in-progress":inProgress, done } = localStorageTasks;
     const taskLists = document.querySelectorAll(".sections > ul");
     for(let tasks of todo.reverse()){
@@ -27,6 +27,7 @@ function generateTasks(){
         const newTask = createElement("li", [tasks], ["task"]);
         taskLists[2].insertBefore(newTask, taskLists[2].firstChild);
     }
+
     const allTasks = document.querySelectorAll(".task");
     for(let task of allTasks){
         task.style.border = "2px solid";
@@ -46,9 +47,8 @@ function clearExistingTasks(){
     }
 }
 
-function addTask(button){
+function addNewTask(button){
     // Clears all existing tasks
-    clearExistingTasks();
     const currentSection = button.parentElement;
     const newTaskValue = currentSection.querySelector("input").value;
     const taskList = currentSection.querySelector("ul");
@@ -74,29 +74,63 @@ function mouseOverList(event){
     if(!(currentTask.tagName === "LI")){
         return;
     }
+    function keyPress(event) {
+        const newListMove = keyPressValidator(event);
+        if(newListMove !== undefined){
+            const taskParentList = currentTask.parentElement;
+            if(checkSameList(taskParentList, newListMove) !== "same"){
+                document.removeEventListener("keydown", keyPress);
+                moveTask(currentTask, newListMove);
+            }
+        }
+    }
     document.addEventListener("keydown", keyPress);
     currentTask.addEventListener("mouseleave", () =>{
         document.removeEventListener("keydown", keyPress);
     })
 }
-function keyPress(event){
+
+function keyPressValidator(event){
     if(!event.altKey){
         return;
     }
     else{
         event.preventDefault();
     }
-    switch(event.key){
+    const pressedKey = event.key;
+    if(pressedKey === "1" || pressedKey === "2" || pressedKey === "3"){
+        return pressedKey;
+    }
+}
+
+function checkSameList(currentList, newList){
+    const currentListClasses = currentList.classList;
+    switch(newList){
         case "1":
-            console.log("1");
+            if(currentListClasses.contains("to-do-tasks")){
+                return "same";
+            }
             break;
         case "2":
-            console.log("2");
+            if(currentListClasses.contains("in-progress-tasks")){
+                return "same";
+            }
             break;
         case "3":
-            console.log("3");
+            if(currentListClasses.contains("done-tasks")){
+                return "same";
+            }
             break;
     }
+    return "not same";
+}
+
+function moveTask(task, newListNum){
+    const taskSections = document.querySelectorAll(".sections");
+    newListIndex = parseInt(newListNum)-1;
+    const newList = taskSections[newListIndex].querySelector("ul");
+    addToLocalStorage(newList, task.innerText);
+    generateTasks();
 }
 
 generateTasks();
