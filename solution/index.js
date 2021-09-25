@@ -74,7 +74,8 @@ function mouseOverList(event){
     if(!(currentTask.tagName === "LI")){
         return;
     }
-    function keyPress(event) {
+
+    function keyPress(event){
         const newListMove = keyPressValidator(event);
         if(newListMove !== undefined){
             const taskParentList = currentTask.parentElement;
@@ -84,9 +85,25 @@ function mouseOverList(event){
             }
         }
     }
+
+    function doubleClicked(){
+        currentTask.contentEditable = true;
+        currentTask.onblur = () => {
+            currentTask.contentEditable = false;
+            const parentListIndex = currentTask.parentElement.getAttribute("data-list");
+            const taskIndex = taskIndexInList(currentTask);
+            editLocalStorage(parentListIndex, taskIndex, currentTask.innerText);
+        }
+    }
+
     document.addEventListener("keydown", keyPress);
+
+    currentTask.style.userSelect = "none";
+    document.addEventListener("dblclick", doubleClicked);
+
     currentTask.addEventListener("mouseleave", () =>{
         document.removeEventListener("keydown", keyPress);
+        document.removeEventListener("dblclick", doubleClicked);
     })
 }
 
@@ -153,10 +170,34 @@ function removeCurrentTask(task){
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
 
+function editLocalStorage(listIndex, taskIndex, newValue){
+    const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    switch(listIndex){
+        case "0":
+            localStorageTasks.todo[taskIndex] = newValue;
+            break;
+        case "1":
+            console.log(`putting ${newValue} in ${localStorage.tasks} at place ${taskIndex}`);
+            localStorageTasks["in-progress"][taskIndex] = newValue;
+            console.log(localStorageTasks["in-progress"]);
+            break;
+        case "2":
+            localStorageTasks.done[taskIndex] = newValue;
+            break;
+    }
+    localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
+}
+
 function listAsArray(index){
     const taskLists = document.querySelectorAll(".sections > ul");
     const selectedList = taskLists[index].querySelectorAll(".task");
     return [...selectedList];
+}
+
+function taskIndexInList(task){
+    const parentListIndex = task.parentElement.getAttribute("data-list");
+    const parentListArray = listAsArray(parentListIndex);
+    return parentListArray.indexOf(task);
 }
 
 function addIndexToLists(){
