@@ -50,10 +50,18 @@ function clearExistingTasks(){
 function addNewTask(button){
     // Clears all existing tasks
     const currentSection = button.parentElement;
-    const newTaskValue = currentSection.querySelector("input").value;
-    const taskList = currentSection.querySelector("ul");
-    addToLocalStorage(taskList, newTaskValue);
-    generateTasks();
+    const currentSectionInput = currentSection.querySelector("input");
+    const newTaskValue = currentSectionInput.value;
+    if(newTaskValue.length === 0){
+        alert("Dont submit an empty task!")
+        currentSectionInput.focus()
+    }
+    else{
+        const taskList = currentSection.querySelector("ul");
+        addToLocalStorage(taskList, newTaskValue);
+        currentSectionInput.value=null;
+        generateTasks();
+    }
 }
 
 function addToLocalStorage(taskList, task){
