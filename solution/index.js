@@ -288,10 +288,9 @@ async function loadData(event){
     header.removeChild(loader);
 
     if(!response.ok){
-        alert ("try again");
-        //throw "try again"
+        alert ("Error " + status + ", Try again...");
     }
-
+    const status=response.status;
     let result = await response.json();
     if(typeof(result.tasks) === "object"){
         const emptyObjResult = result.tasks;
@@ -324,8 +323,9 @@ async function saveData(event){
         body: JSON.stringify({"tasks": `${dataToSave}`})
     });
     header.removeChild(loader);
+    const status=response.status;
     if(!response.ok){
-        alert ("try again");
+        alert ("Error " + status + ", Try again...");
     }
 }
 document.body.style.backgroundImage = 
