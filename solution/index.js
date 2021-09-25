@@ -269,6 +269,66 @@ function searchBarTyping(event){
     searchBar.addEventListener("blur", () => searchBar.removeEventListener("keydown", newSearch));
 }
 
+async function loadData(event){
+    const header = document.querySelector("header")
+    const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
+    header.appendChild(loader);
+
+    const response = await fetch ("https://json-bins.herokuapp.com/bin/614b049a4021ac0e6c080ccf", {
+        method: "GET"
+        /*headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }*/
+    });
+    header.removeChild(loader);
+
+    if(!response.ok){
+        alert ("try again");
+        //throw "try again"
+    }
+
+    let result = await response.json();
+    if(typeof(result.tasks) === "object"){
+        const emptyObjResult = result.tasks;
+        localStorage.setItem("tasks", JSON.stringify(emptyObjResult));
+    }
+    else{
+        localStorage.setItem("tasks", result.tasks);
+    }
+    clearExistingTasks();
+    generateTasks();
+}
+
+async function saveData(event){
+    const header = document.querySelector("header")
+    const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
+    header.appendChild(loader);
+
+    let dataToSave = JSON.parse(localStorage.getItem("tasks"));
+    console.log("this is what i got ", dataToSave);
+    if(dataToSave === null){
+        console.log("yup its null indeed");
+        dataToSave={"todo":[], "in-progress":[], "done":[]}
+        localStorage.setItem("tasks", JSON.stringify(dataToSave));
+    }
+    header.removeChild(loader);
+
+    dataToSave = localStorage.getItem("tasks");
+    console.log(dataToSave);
+    const response = await fetch ("https://json-bins.herokuapp.com/bin/614b049a4021ac0e6c080ccf", {
+        method: "PUT",
+        headers: {
+            //"Accept": "application/json",
+            "content-type": "application/json"
+        },
+        body: JSON.stringify({"tasks": `${dataToSave}`})
+    });
+    if(!response.ok){
+        alert ("try again");
+    }
+}
+
 generateTasks();
 addIndexToLists();
 const taskSections = document.querySelector("#task-sections");
@@ -277,6 +337,11 @@ taskSections.addEventListener("mouseover", mouseOverList);
 const searchBar = document.getElementById("search");
 searchBar.addEventListener("focus", searchBarTyping);
 searchBar.addEventListener("blur", () => searchBar.removeEventListener("focus", searchBarTyping));
+
+const loadButton = document.getElementById("load-btn");
+loadButton.addEventListener("click", loadData);
+const saveButton = document.getElementById("save-btn");
+saveButton.addEventListener("click", saveData);
 
 /**
  * Creates a new DOM element.
