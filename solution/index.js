@@ -177,9 +177,7 @@ function editLocalStorage(listIndex, taskIndex, newValue){
             localStorageTasks.todo[taskIndex] = newValue;
             break;
         case "1":
-            console.log(`putting ${newValue} in ${localStorage.tasks} at place ${taskIndex}`);
             localStorageTasks["in-progress"][taskIndex] = newValue;
-            console.log(localStorageTasks["in-progress"]);
             break;
         case "2":
             localStorageTasks.done[taskIndex] = newValue;
@@ -209,11 +207,76 @@ function addIndexToLists(){
     }
 }
 
+function searchBarTyping(event){
+    const searchBar = event.target;
+    searchBar.addEventListener("keyup", newSearch);
+
+    function newSearch(event){
+        // const pressedKey = event.key;
+        const newInput = searchBar.value;
+        if(newInput === ""){
+            generateTasks();
+            return;
+        }
+        const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+        clearExistingTasks();
+        const matchingTasks = [];
+        for(let list in localStorageTasks){
+            const currentList = localStorageTasks[list];
+            const newList = []
+            for(let task of currentList){
+                if(task.toLowerCase().includes(newInput.toLowerCase())){
+                    newList.push(task);
+                }
+            }
+            matchingTasks.push(newList);
+        }
+        /*for(let list of matchingTasks){
+            const listNum = matchingTasks.indexOf(list).toString();
+            console.log(mappedList);
+        }*/
+        let noMatches = false;
+        for(let list of matchingTasks){
+            if(list.length !== 0){
+                noMatches = true;
+            }
+        }
+        if(noMatches === true){
+            clearExistingTasks;
+        }
+        const mappedList1 = document.querySelector("ul[data-list='0']");
+        for(let task of matchingTasks[0]){
+            const matchingTaskLi = createElement("li", [task], ["task"]);
+            mappedList1.appendChild(matchingTaskLi);
+        }
+        const mappedList2 = document.querySelector("ul[data-list='1']");
+        for(let task of matchingTasks[1]){
+            const matchingTaskLi = createElement("li", [task], ["task"]);
+            mappedList2.appendChild(matchingTaskLi);
+        }
+        const mappedList3 = document.querySelector("ul[data-list='2']");
+        for(let task of matchingTasks[2]){
+            const matchingTaskLi = createElement("li", [task], ["task"]);
+            mappedList3.appendChild(matchingTaskLi);
+        }
+
+        const allTasks = document.querySelectorAll(".task");
+        for(let task of allTasks){
+            task.style.border = "2px solid";
+        }
+    }
+
+    searchBar.addEventListener("blur", () => searchBar.removeEventListener("keydown", newSearch));
+}
+
 generateTasks();
 addIndexToLists();
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
 taskSections.addEventListener("mouseover", mouseOverList);
+const searchBar = document.getElementById("search");
+searchBar.addEventListener("focus", searchBarTyping);
+searchBar.addEventListener("blur", () => searchBar.removeEventListener("focus", searchBarTyping));
 
 /**
  * Creates a new DOM element.
