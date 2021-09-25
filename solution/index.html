@@ -11,24 +11,26 @@
 <body>
     <header>
         <h1 id="page-title">Task Manager</h1>
-        <input id="search"><br>
-        <button id="load-btn">Load</button><br>
-        <button id="save-btn">Save</button><br>
+        <input id="search" placeholder="Search for a phrase...">
+        <div id="api-sync">
+            <button id="load-btn">Load</button>
+            <button id="save-btn">Save</button>
+        </div>
     </header>
     <div id="task-sections">
         <section class="sections"> To Do:
             <ul class="to-do-tasks"></ul>
-            <input id="add-to-do-task">
+            <input id="add-to-do-task" placeholder="Add a new task...">
             <button id="submit-add-to-do" class="submit-buttons">Submit</button>
         </section>
         <section class="sections"> In Progress:
             <ul class="in-progress-tasks"></ul>
-            <input id="add-in-progress-task">
+            <input id="add-in-progress-task" placeholder="Add a new task...">
             <button id="submit-add-in-progress" class="submit-buttons">Submit</button>
         </section>
         <section class="sections">  Done:
             <ul class="done-tasks"></ul>
-            <input id="add-done-task">
+            <input id="add-done-task" placeholder="Add a new task...">
             <button id="submit-add-done" class="submit-buttons">Submit</button>
         </section>
     </div>
