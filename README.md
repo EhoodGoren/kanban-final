@@ -16,3 +16,6 @@ You have a task manager. There are three lists: To Do, In Progress, Done. Add ta
 
 Here is how it looks like:
 ![Product view](./solution/Task-Manager.PNG)
+
+Link for the task manager:
+https://ehoodgoren.github.io/kanban-final/solution/
