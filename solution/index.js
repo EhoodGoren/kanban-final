@@ -34,12 +34,6 @@ function generateTasks(){
     }
     addIndexToLists();
     addIndexToTasks();
-    /*for(let list in arguments){
-        const currentList = taskLists.querySelectorAll("ul")
-        for(let tasks of list){
-            const 
-        }
-    }*/
 }
 
 function clearExistingTasks(){
