@@ -103,7 +103,14 @@ function mouseOverList(event){
         const oldText = currentTask.innerText;
         currentTask.contentEditable = true;
         currentTask.focus();
+        currentTask.addEventListener("keydown", checkEnter);
+        function checkEnter(event){
+            if(event.key === "Enter"){
+                currentTask.blur();
+            }
+        }
         currentTask.onblur = () => {
+            currentTask.removeEventListener("keydown", checkEnter);
             currentTask.contentEditable = false;
             if(currentTask.innerText===""){
                 currentTask.innerText = oldText;
