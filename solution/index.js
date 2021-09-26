@@ -416,8 +416,7 @@ function dragNDrop(event){
 }
 
 
-document.body.style.backgroundImage = 
-"url('https://images.pexels.com/photos/1631677/pexels-photo-1631677.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500')";
+document.body.style.backgroundImage = "url('background.jpeg')";
 document.body.style.backgroundSize = "100vw 100vh";
 
 generateTasks();
