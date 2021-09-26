@@ -330,6 +330,8 @@ function deleteAllTasks(event){
         const yesButton = document.querySelector("#yes-btn");
         if(event.target === yesButton){
             clearExistingTasks();
+            const emptyStorage = {"todo":[], "in-progress":[], "done":[]}
+            localStorage.setItem("tasks", JSON.stringify(emptyStorage));
         }
         const deleteAllButtonChildren = deleteAllButton.querySelectorAll("*");
         for(let child of deleteAllButtonChildren){
