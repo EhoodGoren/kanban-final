@@ -52,9 +52,17 @@ li {
 
 #load-btn, #save-btn {
     font-size: 25px;
+    background-color: #ABC0C6;
 }
 
 #search {
     width: 200px;
     height: 25px;
+}
+
+#remove-all-btn {
+    position: absolute;
+    right: 0;
+    font-size: 25px;
+    background-color: #ABC0C6;
 }

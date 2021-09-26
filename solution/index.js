@@ -129,23 +129,9 @@ function keyPressValidator(event){
 }
 
 function checkSameList(currentList, newList){
-    const currentListClasses = currentList.classList;
-    switch(newList){
-        case "1":
-            if(currentListClasses.contains("to-do-tasks")){
-                return "same";
-            }
-            break;
-        case "2":
-            if(currentListClasses.contains("in-progress-tasks")){
-                return "same";
-            }
-            break;
-        case "3":
-            if(currentListClasses.contains("done-tasks")){
-                return "same";
-            }
-            break;
+    const currentListIndex = currentList.getAttribute("data-list");
+    if(currentListIndex === (parseInt(newList)-1).toString()){
+        return "same";
     }
     return "not same";
 }
@@ -215,12 +201,22 @@ function addIndexToLists(){
     }
 }
 
+function addIndexToTasks(task){
+    const lists = document.querySelectorAll(".sections > ul");
+    for(let list of lists){
+        let index = 0;
+        for(let task of list.children){
+            task.setAttribute("data-task-index", index);
+            index++;
+        }
+    }
+}
+
 function searchBarTyping(event){
     const searchBar = event.target;
     searchBar.addEventListener("keyup", newSearch);
 
     function newSearch(event){
-        // const pressedKey = event.key;
         const newInput = searchBar.value;
         if(newInput === ""){
             generateTasks();
@@ -239,10 +235,6 @@ function searchBarTyping(event){
             }
             matchingTasks.push(newList);
         }
-        /*for(let list of matchingTasks){
-            const listNum = matchingTasks.indexOf(list).toString();
-            console.log(mappedList);
-        }*/
         let noMatches = false;
         for(let list of matchingTasks){
             if(list.length !== 0){
@@ -252,20 +244,15 @@ function searchBarTyping(event){
         if(noMatches === true){
             clearExistingTasks;
         }
-        const mappedList1 = document.querySelector("ul[data-list='0']");
-        for(let task of matchingTasks[0]){
-            const matchingTaskLi = createElement("li", [task], ["task"]);
-            mappedList1.appendChild(matchingTaskLi);
-        }
-        const mappedList2 = document.querySelector("ul[data-list='1']");
-        for(let task of matchingTasks[1]){
-            const matchingTaskLi = createElement("li", [task], ["task"]);
-            mappedList2.appendChild(matchingTaskLi);
-        }
-        const mappedList3 = document.querySelector("ul[data-list='2']");
-        for(let task of matchingTasks[2]){
-            const matchingTaskLi = createElement("li", [task], ["task"]);
-            mappedList3.appendChild(matchingTaskLi);
+
+        const mappedLists = document.querySelectorAll("ul[data-list]");
+        let listCounter = 0;
+        for(let list of mappedLists){
+            for(let task of matchingTasks[listCounter]){
+                const matchingTaskLi = createElement("li", [task], ["task"]);
+                list.appendChild(matchingTaskLi);
+            }
+            listCounter++;
         }
 
         const allTasks = document.querySelectorAll(".task");
@@ -328,12 +315,38 @@ async function saveData(event){
         alert ("Error " + status + ", Try again...");
     }
 }
+
+function deleteAllTasks(event){
+    const deleteAllButton = document.getElementById("remove-all-btn");
+    if(event.target === deleteAllButton){
+        const question = createElement("div", ["Are you sure?"], [], {style: "font-size:25px"});
+        deleteAllButton.appendChild(question);
+        const yesButton = createElement("button",["Yes"], [], {id:"yes-btn" ,style:"font-size: 20px; margin:5px; width:40%"});
+        const noButton = createElement("button",["No"],  [], {id:"no-btn", style:"font-size: 20px; margin:5px; width:40%"});
+        deleteAllButton.appendChild(yesButton);
+        deleteAllButton.appendChild(noButton);
+    }
+    else{
+        const yesButton = document.querySelector("#yes-btn");
+        if(event.target === yesButton){
+            clearExistingTasks();
+        }
+        const deleteAllButtonChildren = deleteAllButton.querySelectorAll("*");
+        for(let child of deleteAllButtonChildren){
+            child.remove();
+        }
+    }
+}
+
+
+
 document.body.style.backgroundImage = 
 "url('https://images.pexels.com/photos/1631677/pexels-photo-1631677.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500')";
 document.body.style.backgroundSize = "100vw 100vh";
 
 generateTasks();
 addIndexToLists();
+addIndexToTasks();
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
 taskSections.addEventListener("mouseover", mouseOverList);
@@ -345,6 +358,9 @@ const loadButton = document.getElementById("load-btn");
 loadButton.addEventListener("click", loadData);
 const saveButton = document.getElementById("save-btn");
 saveButton.addEventListener("click", saveData);
+
+const deleteAllButton = document.getElementById("remove-all-btn");
+deleteAllButton.addEventListener("click", deleteAllTasks)
 
 /**
  * Creates a new DOM element.
