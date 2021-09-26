@@ -49,7 +49,7 @@ function addNewTask(button){
     const currentSectionInput = currentSection.querySelector("input");
     const newTaskValue = currentSectionInput.value;
     if(newTaskValue.length === 0){
-        alert("Dont submit an empty task!")
+        alert("Don't submit an empty task!")
         currentSectionInput.focus()
     }
     else{
