@@ -32,6 +32,8 @@ function generateTasks(){
     for(let task of allTasks){
         task.style.border = "2px solid";
     }
+    addIndexToLists();
+    addIndexToTasks();
     /*for(let list in arguments){
         const currentList = taskLists.querySelectorAll("ul")
         for(let tasks of list){
@@ -87,6 +89,9 @@ function mouseOverList(event){
         const newListMove = keyPressValidator(event);
         if(newListMove !== undefined){
             const taskParentList = currentTask.parentElement;
+            if(taskParentList === null){
+                return
+            }
             if(checkSameList(taskParentList, newListMove) !== "same"){
                 document.removeEventListener("keydown", keyPress);
                 moveTask(currentTask, newListMove);
@@ -95,14 +100,24 @@ function mouseOverList(event){
     }
 
     function doubleClicked(){
+        const oldText = currentTask.innerText;
         currentTask.contentEditable = true;
+        currentTask.focus();
         currentTask.onblur = () => {
             currentTask.contentEditable = false;
+            if(currentTask.innerText===""){
+                currentTask.innerText = oldText;
+            }
             const parentListIndex = currentTask.parentElement.getAttribute("data-list");
             const taskIndex = taskIndexInList(currentTask);
             editLocalStorage(parentListIndex, taskIndex, currentTask.innerText);
         }
     }
+
+    currentTask.addEventListener("mousedown", dragNDrop);
+    currentTask.addEventListener("mouseup", () => {
+        currentTask.removeEventListener("mousedown", dragNDrop);
+    })
 
     document.addEventListener("keydown", keyPress);
 
@@ -340,6 +355,64 @@ function deleteAllTasks(event){
     }
 }
 
+function dragNDrop(event){
+    const task=event.target;
+    task.draggable = true;
+    const parentListIndex = task.parentElement.getAttribute("data-list")
+    const parentListArray = listAsArray(parentListIndex);
+    const draggables = document.querySelectorAll(".sections > ul > li");
+    task.addEventListener("dragstart", dragStart);
+    
+    let dragStartIndex;
+    function dragEnd(){
+        task.removeEventListener("dragstart", dragStart);
+    }
+    function dragOver(event){
+        event.preventDefault();
+    }
+    function dragEnter(){
+        this.classList.add("over");
+    }
+    function dragLeave(){
+        this.classList.remove("over");
+    }
+    function dragStart(){
+        draggables.forEach(draggable => {
+            draggable.addEventListener("dragover", dragOver);
+            draggable.addEventListener("drop", dragDrop);
+            draggable.addEventListener("dragenter", dragEnter);
+            draggable.addEventListener("dragleave", dragLeave);
+        })
+        task.addEventListener("dragend", dragEnd);
+        dragStartIndex = this.closest("li").getAttribute("data-task-index");
+    }
+    function dragDrop(){
+        const dragEndIndex = this.getAttribute("data-task-index");
+        swapItems(dragStartIndex, dragEndIndex);
+
+        this.classList.remove("over");
+    }
+
+    function swapItems(fromIndex, toIndex){
+        const itemOne = parentListArray[fromIndex];
+        const itemTwo = parentListArray[toIndex];
+        editLocalStorage(parentListIndex, fromIndex, itemTwo.innerText)
+        editLocalStorage(parentListIndex, toIndex, itemOne.innerText)
+
+        draggables.forEach(draggable => {
+            draggable.removeEventListener("dragover", dragOver);
+            draggable.removeEventListener("drop", dragDrop);
+            draggable.removeEventListener("dragenter", dragEnter);
+            draggable.removeEventListener("dragleave", dragLeave);
+        })
+        task.removeEventListener("dragstart", dragStart);
+        clearExistingTasks();
+        generateTasks();
+    }
+    task.addEventListener("mouseleave" , ()=>{
+        task.removeEventListener("dragstart", dragStart);
+    })
+}
 
 
 document.body.style.backgroundImage = 
