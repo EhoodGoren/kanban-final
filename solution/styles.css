@@ -1,0 +1,72 @@
+header {
+    text-align: center;
+}
+
+.sections {
+    height: 100%;
+    border: 2px solid;
+    margin: 0px 50px;
+    text-align: center;
+    font-size: 30px;
+    background-color: #ABC0C6;
+}
+
+#task-sections {
+    /*margin: 0 auto;*/
+    justify-content: center;
+    margin-top: 50px;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+ul {
+    list-style: none;
+    margin: 10px;
+    padding: 0;
+}
+
+li {
+    margin-top: 10px;
+    background-color: #DFE6E8;
+}
+
+.submit-buttons{
+    margin-bottom: 2px;
+    margin-right: 2px;
+}
+
+.sections > input {
+    margin-left: 2px;
+}
+
+#api-sync {
+    justify-content: center;
+    display: flex;
+    margin-top: 50px;
+    
+}
+
+#load-btn{
+    margin-right: 50px;
+}
+
+#load-btn, #save-btn {
+    font-size: 25px;
+    background-color: #ABC0C6;
+}
+
+#search {
+    width: 200px;
+    height: 25px;
+}
+
+#remove-all-btn {
+    position: absolute;
+    right: 0;
+    font-size: 25px;
+    background-color: #ABC0C6;
+}
+
+.over {
+    background-color: #A5AEB0;
+}
