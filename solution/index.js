@@ -1,3 +1,4 @@
+// Checks for a click on a submit button, and handles it.
 function handleSubmitClick(event){
     const clickedElement = event.target;
     if(clickedElement.classList.contains("submit-buttons")){
@@ -5,15 +6,18 @@ function handleSubmitClick(event){
     }
 }
 
+// Re-generates the DOM elements, from the local storage.
 function generateTasks(){
-    // Checks if tasks is empty.
+    // Checks if localStorage's tasks object is empty. If it is, inserts suitable empty arrays.
     let localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
     if(localStorageTasks===null){
         localStorageTasks={"todo":[], "in-progress":[], "done":[]}
         localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
     }
+    // Removes all exisiting tasks in DOM.
     clearExistingTasks();
     const { todo, "in-progress":inProgress, done } = localStorageTasks;
+    // Creates li elements in DOM for each list (by what's in the localStorage arrays).
     const taskLists = document.querySelectorAll(".sections > ul");
     for(let tasks of todo.reverse()){
         const newTask = createElement("li", [tasks], ["task"]);
@@ -28,14 +32,17 @@ function generateTasks(){
         taskLists[2].insertBefore(newTask, taskLists[2].firstChild);
     }
 
+    // Adds an outline for each task generated.
     const allTasks = document.querySelectorAll(".task");
     for(let task of allTasks){
         task.style.border = "2px solid";
     }
+    // Adds indexes for the new lists and tasks.
     addIndexToLists();
     addIndexToTasks();
 }
 
+// Removes all existing tasks in DOM.
 function clearExistingTasks(){
     const existingTasks = document.querySelectorAll(".sections .task");
     for(let tasks of existingTasks){
@@ -43,16 +50,19 @@ function clearExistingTasks(){
     }
 }
 
+// If the task received is proper, it is added to DOM and displayed.
 function addNewTask(button){
-    // Clears all existing tasks
+    // newTaskValue gets the value of the input field next to the clicked button.
     const currentSection = button.parentElement;
     const currentSectionInput = currentSection.querySelector("input");
     const newTaskValue = currentSectionInput.value;
+    // If an empty task was submited.
     if(newTaskValue.length === 0){
         alert("Don't submit an empty task!")
         currentSectionInput.focus()
     }
     else{
+        // If the new task was proper, it is added to the locaStorage. DOM is re-generated to display it.
         const taskList = currentSection.querySelector("ul");
         addToLocalStorage(taskList, newTaskValue);
         currentSectionInput.value=null;
@@ -60,6 +70,7 @@ function addNewTask(button){
     }
 }
 
+// Adds a new task to the localStorage array that represents the given list.
 function addToLocalStorage(taskList, task){
     const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
     const taskListClasses = taskList.classList;
@@ -73,19 +84,24 @@ function addToLocalStorage(taskList, task){
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
 
+// Covers some events on a task.
 function mouseOverList(event){
+    // Only handles events when mouse is over a li element.
     const currentTask = event.target;
     if(!(currentTask.tagName === "LI")){
         return;
     }
 
+    // Handles a key press on keyboard.
     function keyPress(event){
         const newListMove = keyPressValidator(event);
+        // This will happen when 1/2/3 is pressed with Alt.
         if(newListMove !== undefined){
             const taskParentList = currentTask.parentElement;
             if(taskParentList === null){
                 return
             }
+            // If an attempt to move a task to a list it's already in, nothing will happen.
             if(checkSameList(taskParentList, newListMove) !== "same"){
                 document.removeEventListener("keydown", keyPress);
                 moveTask(currentTask, newListMove);
@@ -93,11 +109,14 @@ function mouseOverList(event){
         }
     }
 
+    // Allows editing the task's content, and saves it when enter is pressed or focus is lost.
     function doubleClicked(){
         const oldText = currentTask.innerText;
         currentTask.contentEditable = true;
         currentTask.focus();
         currentTask.addEventListener("keydown", checkEnter);
+
+        // If enter was pressed initiates new task value save.
         function checkEnter(event){
             if(event.key === "Enter"){
                 currentTask.blur();
@@ -106,6 +125,7 @@ function mouseOverList(event){
         currentTask.onblur = () => {
             currentTask.removeEventListener("keydown", checkEnter);
             currentTask.contentEditable = false;
+            // If trying to set a task to an empty value, old value is restored.
             if(currentTask.innerText===""){
                 currentTask.innerText = oldText;
             }
@@ -115,22 +135,27 @@ function mouseOverList(event){
         }
     }
 
+    // Calls for drag and drop on a task.
     currentTask.addEventListener("mousedown", dragNDrop);
     currentTask.addEventListener("mouseup", () => {
         currentTask.removeEventListener("mousedown", dragNDrop);
     })
 
+    // Checks a keyboard key press made (while mouse is on a task).
     document.addEventListener("keydown", keyPress);
 
+    // Enables double clicking a task to change its value (without normal double click effect).
     currentTask.style.userSelect = "none";
     document.addEventListener("dblclick", doubleClicked);
 
+    // Cancel the above tests when mouse leaves the task.
     currentTask.addEventListener("mouseleave", () =>{
         document.removeEventListener("keydown", keyPress);
         document.removeEventListener("dblclick", doubleClicked);
     })
 }
 
+// Checks if a list number was clicked with Alt on the keyboard.
 function keyPressValidator(event){
     if(!event.altKey){
         return;
@@ -144,6 +169,7 @@ function keyPressValidator(event){
     }
 }
 
+// Checks if 2 given lists are the same.
 function checkSameList(currentList, newList){
     const currentListIndex = currentList.getAttribute("data-list");
     if(currentListIndex === (parseInt(newList)-1).toString()){
@@ -152,8 +178,12 @@ function checkSameList(currentList, newList){
     return "not same";
 }
 
+// Removes a task from its list and adds it to another.
 function moveTask(task, newListNum){
+    // Removes it from localStorage from the previous list.
     removeCurrentTask(task)
+
+    // Adds it to the localStorage to the new list.
     const taskSections = document.querySelectorAll(".sections");
     newListIndex = parseInt(newListNum)-1;
     const newList = taskSections[newListIndex].querySelector("ul");
@@ -161,10 +191,12 @@ function moveTask(task, newListNum){
     generateTasks();
 }
 
+// Removes a task from localStorage.
 function removeCurrentTask(task){
     const listOfTaskNum = task.parentElement.getAttribute("data-list");
     const listOfTask = listAsArray(listOfTaskNum);
     const taskIndexInList = listOfTask.indexOf(task);
+
     const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
     switch(listOfTaskNum){
         case "0":
@@ -180,6 +212,7 @@ function removeCurrentTask(task){
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
 
+// Replaces an existing value in localStorage with the new given value.
 function editLocalStorage(listIndex, taskIndex, newValue){
     const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
     switch(listIndex){
@@ -196,18 +229,21 @@ function editLocalStorage(listIndex, taskIndex, newValue){
     localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
 }
 
+// Returns an HTMLCollection with all li elements of a list by a given list index.
 function listAsArray(index){
     const taskLists = document.querySelectorAll(".sections > ul");
     const selectedList = taskLists[index].querySelectorAll(".task");
     return [...selectedList];
 }
 
+// Returns the task's index in its parent list.
 function taskIndexInList(task){
     const parentListIndex = task.parentElement.getAttribute("data-list");
     const parentListArray = listAsArray(parentListIndex);
     return parentListArray.indexOf(task);
 }
 
+// Adds a list index attribute for every list.
 function addIndexToLists(){
     const taskLists = document.querySelectorAll(".sections > ul");
     let listIndex=0;
@@ -217,7 +253,8 @@ function addIndexToLists(){
     }
 }
 
-function addIndexToTasks(task){
+// Adds a task index attribute for every task (count resets for every list).
+function addIndexToTasks(){
     const lists = document.querySelectorAll(".sections > ul");
     for(let list of lists){
         let index = 0;
@@ -228,19 +265,24 @@ function addIndexToTasks(task){
     }
 }
 
+// Handles a new search session in the search bar.
 function searchBarTyping(event){
     const searchBar = event.target;
     searchBar.addEventListener("keyup", newSearch);
 
-    function newSearch(event){
+    // Handles a new search value.
+    function newSearch(){
         const newInput = searchBar.value;
+        // When the search bar is empty (all chars deleted, or nothing written), displays all the existing tasks again.
         if(newInput === ""){
             generateTasks();
             return;
         }
+
         const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
         clearExistingTasks();
         const matchingTasks = [];
+        // Searches for values in localStorage that match the searched phrase.
         for(let list in localStorageTasks){
             const currentList = localStorageTasks[list];
             const newList = []
@@ -251,16 +293,19 @@ function searchBarTyping(event){
             }
             matchingTasks.push(newList);
         }
+
         let noMatches = false;
         for(let list of matchingTasks){
             if(list.length !== 0){
                 noMatches = true;
             }
         }
+
         if(noMatches === true){
             clearExistingTasks;
         }
 
+        // Shows the matching tasks (DOM).
         const mappedLists = document.querySelectorAll("ul[data-list]");
         let listCounter = 0;
         for(let list of mappedLists){
@@ -270,7 +315,7 @@ function searchBarTyping(event){
             }
             listCounter++;
         }
-
+        // Adds an outline for each task generated.
         const allTasks = document.querySelectorAll(".task");
         for(let task of allTasks){
             task.style.border = "2px solid";
@@ -280,7 +325,9 @@ function searchBarTyping(event){
     searchBar.addEventListener("blur", () => searchBar.removeEventListener("keydown", newSearch));
 }
 
-async function loadData(event){
+// Loads the data from the api, and saves it to localStorage.
+async function loadData(){
+    // Shows loader.
     const header = document.querySelector("header")
     const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
     header.appendChild(loader);
@@ -288,13 +335,16 @@ async function loadData(event){
     const response = await fetch ("https://json-bins.herokuapp.com/bin/614b049a4021ac0e6c080ccf", {
         method: "GET"
     });
+    // Removes loader when fetch is done.
     header.removeChild(loader);
 
+    // If the response has status 400+ (error).
+    const status=response.status;
     if(!response.ok){
         alert ("Error " + status + ", Try again...");
     }
-    const status=response.status;
     let result = await response.json();
+    // If received an empty arrays object from the api.
     if(typeof(result.tasks) === "object"){
         const emptyObjResult = result.tasks;
         localStorage.setItem("tasks", JSON.stringify(emptyObjResult));
@@ -302,15 +352,19 @@ async function loadData(event){
     else{
         localStorage.setItem("tasks", result.tasks);
     }
+    // Re-generates DOM for the new tasks loaded from the api.
     clearExistingTasks();
     generateTasks();
 }
 
-async function saveData(event){
+// Saves the tasks from localStorage to the api.
+async function saveData(){
+    // Shows loader.
     const header = document.querySelector("header")
     const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
     header.appendChild(loader);
 
+    // Gets the data from localStorage to save to the api. Creates proper empty arrays object if localStorage was empty.
     let dataToSave = JSON.parse(localStorage.getItem("tasks"));
     if(dataToSave === null){
         dataToSave={"todo":[], "in-progress":[], "done":[]}
@@ -325,30 +379,39 @@ async function saveData(event){
         },
         body: JSON.stringify({"tasks": `${dataToSave}`})
     });
+    // Removes loader when fetch is done.
     header.removeChild(loader);
+
+    // If the response has status 400+ (error).
     const status=response.status;
     if(!response.ok){
         alert ("Error " + status + ", Try again...");
     }
 }
 
+// Handles a click on the bin.
 function deleteAllTasks(event){
     const deleteAllButton = document.getElementById("remove-all-btn");
+    // If the bin was clicked, shows a warning, and allows choosing yes or no.
     if(event.target === deleteAllButton){
         const question = createElement("div", ["Are you sure?"], [], {style: "font-size:25px"});
         deleteAllButton.appendChild(question);
+
         const yesButton = createElement("button",["Yes"], [], {id:"yes-btn" ,style:"font-size: 20px; margin:5px; width:40%"});
         const noButton = createElement("button",["No"],  [], {id:"no-btn", style:"font-size: 20px; margin:5px; width:40%"});
         deleteAllButton.appendChild(yesButton);
         deleteAllButton.appendChild(noButton);
     }
+    // If the click was on the yes or no buttons.
     else{
         const yesButton = document.querySelector("#yes-btn");
+        // Clicking yes removes all tasks from DOM.
         if(event.target === yesButton){
             clearExistingTasks();
             const emptyStorage = {"todo":[], "in-progress":[], "done":[]}
             localStorage.setItem("tasks", JSON.stringify(emptyStorage));
         }
+        // Reverts the bin to its originial state.
         const deleteAllButtonChildren = deleteAllButton.querySelectorAll("*");
         for(let child of deleteAllButtonChildren){
             child.remove();
@@ -356,6 +419,7 @@ function deleteAllTasks(event){
     }
 }
 
+// Handles a drag and drop of a task.
 function dragNDrop(event){
     const task=event.target;
     task.draggable = true;
@@ -393,7 +457,7 @@ function dragNDrop(event){
 
         this.classList.remove("over");
     }
-
+    // Swaps the task with another task when dropped on one.
     function swapItems(fromIndex, toIndex){
         const itemOne = parentListArray[fromIndex];
         const itemTwo = parentListArray[toIndex];
@@ -415,22 +479,26 @@ function dragNDrop(event){
     })
 }
 
-
+// Background for the page.
 document.body.style.backgroundImage = "url('background.jpeg')";
 document.body.style.backgroundSize = "100vw 100vh";
 
+// First time setup.
 generateTasks();
 addIndexToLists();
 addIndexToTasks();
+
 const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
 taskSections.addEventListener("mouseover", mouseOverList);
+
 const searchBar = document.getElementById("search");
 searchBar.addEventListener("focus", searchBarTyping);
 searchBar.addEventListener("blur", () => searchBar.removeEventListener("focus", searchBarTyping));
 
 const loadButton = document.getElementById("load-btn");
 loadButton.addEventListener("click", loadData);
+
 const saveButton = document.getElementById("save-btn");
 saveButton.addEventListener("click", saveData);
 
