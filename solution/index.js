@@ -6,41 +6,51 @@ function handleSubmitClick(event){
     }
 }
 
-// Re-generates the DOM elements, from the local storage.
-function generateTasks(){
-    // Checks if localStorage's tasks object is empty. If it is, inserts suitable empty arrays.
+function checkEmptyLocalStorage(){
     let localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
     if(localStorageTasks===null){
         localStorageTasks={"todo":[], "in-progress":[], "done":[]}
         localStorage.setItem("tasks", JSON.stringify(localStorageTasks));
     }
+    return localStorageTasks;
+}
+
+// Re-generates the DOM elements, from the local storage.
+function generateTasks(){
+    // Checks if localStorage's tasks object is empty. If it is, inserts suitable empty arrays.
+    let localStorageTasks = checkEmptyLocalStorage();
+
     // Removes all exisiting tasks in DOM.
     clearExistingTasks();
+
     const { todo, "in-progress":inProgress, done } = localStorageTasks;
     // Creates li elements in DOM for each list (by what's in the localStorage arrays).
     const taskLists = document.querySelectorAll(".sections > ul");
-    for(let tasks of todo.reverse()){
-        const newTask = createElement("li", [tasks], ["task"]);
-        taskLists[0].insertBefore(newTask, taskLists[0].firstChild);
-    }
-    for(let tasks of inProgress.reverse()){
-        const newTask = createElement("li", [tasks], ["task"]);
-        taskLists[1].insertBefore(newTask, taskLists[1].firstChild);
-    }
-    for(let tasks of done.reverse()){
-        const newTask = createElement("li", [tasks], ["task"]);
-        taskLists[2].insertBefore(newTask, taskLists[2].firstChild);
-    }
+    listTasksGenerator(todo, taskLists[0]);
+    listTasksGenerator(inProgress, taskLists[1]);
+    listTasksGenerator(done, taskLists[2]);
 
     // Adds an outline for each task generated.
-    const allTasks = document.querySelectorAll(".task");
-    for(let task of allTasks){
-        task.style.border = "2px solid";
-    }
+    addTaskBorders();
     // Adds indexes for the new lists and tasks.
     addIndexToLists();
     addIndexToTasks();
 }
+
+function listTasksGenerator(storageList, list){
+    for(let tasks of storageList.reverse()){
+        const newTask = createElement("li", [tasks], ["task"]);
+        list.insertBefore(newTask, list.firstChild);
+    }
+}
+
+function addTaskBorders(){
+    const allTasks = document.querySelectorAll(".task");
+    for(let task of allTasks){
+        task.style.border = "2px solid";
+    }
+}
+
 
 // Removes all existing tasks in DOM.
 function clearExistingTasks(){
@@ -58,8 +68,8 @@ function addNewTask(button){
     const newTaskValue = currentSectionInput.value;
     // If an empty task was submited.
     if(newTaskValue.length === 0){
-        alert("Don't submit an empty task!")
-        currentSectionInput.focus()
+        alert("Don't submit an empty task!");
+        currentSectionInput.focus();
     }
     else{
         // If the new task was proper, it is added to the locaStorage. DOM is re-generated to display it.
@@ -329,14 +339,17 @@ function searchBarTyping(event){
 async function loadData(){
     // Shows loader.
     const header = document.querySelector("header")
-    const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
-    header.appendChild(loader);
+    /*const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
+    header.appendChild(loader);*/
+    generateLoader();
+
+
 
     const response = await fetch ("https://json-bins.herokuapp.com/bin/614b049a4021ac0e6c080ccf", {
         method: "GET"
     });
     // Removes loader when fetch is done.
-    header.removeChild(loader);
+    removeLoader();
 
     // If the response has status 400+ (error).
     const status=response.status;
@@ -345,31 +358,50 @@ async function loadData(){
     }
     let result = await response.json();
     // If received an empty arrays object from the api.
-    if(typeof(result.tasks) === "object"){
+    handleReceivedEmptyObject(result.tasks);
+    /*if(typeof(result.tasks) === "object"){
         const emptyObjResult = result.tasks;
         localStorage.setItem("tasks", JSON.stringify(emptyObjResult));
     }
     else{
         localStorage.setItem("tasks", result.tasks);
-    }
+    }*/
     // Re-generates DOM for the new tasks loaded from the api.
     clearExistingTasks();
     generateTasks();
 }
 
+function generateLoader(){
+    const header = document.querySelector("header")
+    const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
+    header.appendChild(loader);
+}
+
+function removeLoader(){
+    const header = document.querySelector("header")
+    const loader = header.querySelector(".loader")
+    header.removeChild(loader);
+}
+
+function handleReceivedEmptyObject(tasks){
+    if(typeof(tasks) === "object"){
+        const emptyObjResult = tasks;
+        localStorage.setItem("tasks", JSON.stringify(emptyObjResult));
+    }
+    else{
+        localStorage.setItem("tasks", tasks);
+    }
+}
+
+
 // Saves the tasks from localStorage to the api.
 async function saveData(){
     // Shows loader.
     const header = document.querySelector("header")
-    const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
-    header.appendChild(loader);
+    generateLoader();
 
     // Gets the data from localStorage to save to the api. Creates proper empty arrays object if localStorage was empty.
-    let dataToSave = JSON.parse(localStorage.getItem("tasks"));
-    if(dataToSave === null){
-        dataToSave={"todo":[], "in-progress":[], "done":[]}
-        localStorage.setItem("tasks", JSON.stringify(dataToSave));
-    }
+    checkEmptyLocalStorage();
     
     dataToSave = localStorage.getItem("tasks");
     const response = await fetch ("https://json-bins.herokuapp.com/bin/614b049a4021ac0e6c080ccf", {
@@ -380,7 +412,7 @@ async function saveData(){
         body: JSON.stringify({"tasks": `${dataToSave}`})
     });
     // Removes loader when fetch is done.
-    header.removeChild(loader);
+    removeLoader();
 
     // If the response has status 400+ (error).
     const status=response.status;
@@ -394,28 +426,41 @@ function deleteAllTasks(event){
     const deleteAllButton = document.getElementById("remove-all-btn");
     // If the bin was clicked, shows a warning, and allows choosing yes or no.
     if(event.target === deleteAllButton){
-        const question = createElement("div", ["Are you sure?"], [], {style: "font-size:25px"});
-        deleteAllButton.appendChild(question);
-
-        const yesButton = createElement("button",["Yes"], [], {id:"yes-btn" ,style:"font-size: 20px; margin:5px; width:40%"});
-        const noButton = createElement("button",["No"],  [], {id:"no-btn", style:"font-size: 20px; margin:5px; width:40%"});
-        deleteAllButton.appendChild(yesButton);
-        deleteAllButton.appendChild(noButton);
+        deleteClicked();
     }
     // If the click was on the yes or no buttons.
     else{
         const yesButton = document.querySelector("#yes-btn");
         // Clicking yes removes all tasks from DOM.
         if(event.target === yesButton){
-            clearExistingTasks();
-            const emptyStorage = {"todo":[], "in-progress":[], "done":[]}
-            localStorage.setItem("tasks", JSON.stringify(emptyStorage));
+            yesClicked();
         }
         // Reverts the bin to its originial state.
-        const deleteAllButtonChildren = deleteAllButton.querySelectorAll("*");
-        for(let child of deleteAllButtonChildren){
-            child.remove();
-        }
+        revertButtons();
+    }
+}
+function deleteClicked(){
+    const deleteAllButton = document.getElementById("remove-all-btn");
+    const question = createElement("div", ["Are you sure?"], [], {style: "font-size:25px"});
+    deleteAllButton.appendChild(question);
+
+    const yesButton = createElement("button",["Yes"], [], {id:"yes-btn" ,style:"font-size: 20px; margin:5px; width:40%"});
+    const noButton = createElement("button",["No"],  [], {id:"no-btn", style:"font-size: 20px; margin:5px; width:40%"});
+    deleteAllButton.appendChild(yesButton);
+    deleteAllButton.appendChild(noButton);
+}
+
+function yesClicked(){
+    clearExistingTasks();
+    const emptyStorage = {"todo":[], "in-progress":[], "done":[]}
+    localStorage.setItem("tasks", JSON.stringify(emptyStorage));
+}
+
+function revertButtons(){
+    const deleteAllButton = document.getElementById("remove-all-btn");
+    const deleteAllButtonChildren = deleteAllButton.querySelectorAll("*");
+    for(let child of deleteAllButtonChildren){
+        child.remove();
     }
 }
 
@@ -479,16 +524,59 @@ function dragNDrop(event){
     })
 }
 
-// Background for the page.
+
+function setup(){
+    // Background for the page.
+    document.body.style.backgroundImage = "url('background.jpeg')";
+    document.body.style.backgroundSize = "100vw 100vh";
+
+    // First time setup.
+    generateTasks();
+    addIndexToLists();
+    addIndexToTasks();
+}
+setup();
+/*// Background for the page.
 document.body.style.backgroundImage = "url('background.jpeg')";
 document.body.style.backgroundSize = "100vw 100vh";
 
 // First time setup.
 generateTasks();
 addIndexToLists();
-addIndexToTasks();
+addIndexToTasks();*/
 
-const taskSections = document.querySelector("#task-sections");
+function eventListeners(){
+    taskSectionsListeners();
+    searchBarListeners();    
+    deleteAllButtonListeners();
+    saveLoadListeners();
+}
+eventListeners();
+
+function taskSectionsListeners(){
+    const taskSections = document.querySelector("#task-sections");
+    taskSections.addEventListener("click", handleSubmitClick);
+    taskSections.addEventListener("mouseover", mouseOverList);    
+}
+
+function searchBarListeners(){
+    const searchBar = document.getElementById("search");
+    searchBar.addEventListener("focus", searchBarTyping);
+    searchBar.addEventListener("blur", () => searchBar.removeEventListener("focus", searchBarTyping));
+}
+
+function saveLoadListeners(){
+    const loadButton = document.getElementById("load-btn");
+    loadButton.addEventListener("click", loadData);
+
+    const saveButton = document.getElementById("save-btn");
+    saveButton.addEventListener("click", saveData);
+}
+function deleteAllButtonListeners(){
+    const deleteAllButton = document.getElementById("remove-all-btn");
+    deleteAllButton.addEventListener("click", deleteAllTasks)
+}
+/*const taskSections = document.querySelector("#task-sections");
 taskSections.addEventListener("click", handleSubmitClick);
 taskSections.addEventListener("mouseover", mouseOverList);
 
@@ -503,7 +591,7 @@ const saveButton = document.getElementById("save-btn");
 saveButton.addEventListener("click", saveData);
 
 const deleteAllButton = document.getElementById("remove-all-btn");
-deleteAllButton.addEventListener("click", deleteAllTasks)
+deleteAllButton.addEventListener("click", deleteAllTasks)*/
 
 /**
  * Creates a new DOM element.
