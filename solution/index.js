@@ -289,61 +289,66 @@ function searchBarTyping(event){
             return;
         }
 
-        const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
         clearExistingTasks();
-        const matchingTasks = [];
         // Searches for values in localStorage that match the searched phrase.
-        for(let list in localStorageTasks){
-            const currentList = localStorageTasks[list];
-            const newList = []
-            for(let task of currentList){
-                if(task.toLowerCase().includes(newInput.toLowerCase())){
-                    newList.push(task);
-                }
-            }
-            matchingTasks.push(newList);
-        }
+        const matchingTasks = findMatchingTasks(newInput);
 
-        let noMatches = false;
-        for(let list of matchingTasks){
-            if(list.length !== 0){
-                noMatches = true;
-            }
-        }
+        const noMatches = checkNoMatches(matchingTasks);
 
         if(noMatches === true){
             clearExistingTasks;
         }
 
         // Shows the matching tasks (DOM).
-        const mappedLists = document.querySelectorAll("ul[data-list]");
-        let listCounter = 0;
-        for(let list of mappedLists){
-            for(let task of matchingTasks[listCounter]){
-                const matchingTaskLi = createElement("li", [task], ["task"]);
-                list.appendChild(matchingTaskLi);
-            }
-            listCounter++;
-        }
+        showMatchingTasks(matchingTasks);
         // Adds an outline for each task generated.
-        const allTasks = document.querySelectorAll(".task");
-        for(let task of allTasks){
-            task.style.border = "2px solid";
-        }
+        addTaskBorders();
     }
 
     searchBar.addEventListener("blur", () => searchBar.removeEventListener("keydown", newSearch));
 }
 
+function findMatchingTasks(input){
+    const localStorageTasks = JSON.parse(localStorage.getItem("tasks"));
+    const matchingTasks = [];
+    for(let list in localStorageTasks){
+        const currentList = localStorageTasks[list];
+        const newList = []
+        for(let task of currentList){
+            if(task.toLowerCase().includes(input.toLowerCase())){
+                newList.push(task);
+            }
+        }
+        matchingTasks.push(newList);
+    }
+    return matchingTasks;
+}
+
+function checkNoMatches(matchingTasks){
+    for(let list of matchingTasks){
+        if(list.length !== 0){
+            return true;
+        }
+    }
+    return false;
+}
+
+function showMatchingTasks(matchingTasks){
+    const mappedLists = document.querySelectorAll("ul[data-list]");
+    let listCounter = 0;
+    for(let list of mappedLists){
+        for(let task of matchingTasks[listCounter]){
+            const matchingTaskLi = createElement("li", [task], ["task"]);
+            list.appendChild(matchingTaskLi);
+        }
+        listCounter++;
+    }
+}
+
 // Loads the data from the api, and saves it to localStorage.
 async function loadData(){
     // Shows loader.
-    const header = document.querySelector("header")
-    /*const loader = createElement("img", [], ["loader"], {src:"./loader.webp", style:"height: 200px; width: 200px"})
-    header.appendChild(loader);*/
     generateLoader();
-
-
 
     const response = await fetch ("https://json-bins.herokuapp.com/bin/614b049a4021ac0e6c080ccf", {
         method: "GET"
@@ -359,13 +364,6 @@ async function loadData(){
     let result = await response.json();
     // If received an empty arrays object from the api.
     handleReceivedEmptyObject(result.tasks);
-    /*if(typeof(result.tasks) === "object"){
-        const emptyObjResult = result.tasks;
-        localStorage.setItem("tasks", JSON.stringify(emptyObjResult));
-    }
-    else{
-        localStorage.setItem("tasks", result.tasks);
-    }*/
     // Re-generates DOM for the new tasks loaded from the api.
     clearExistingTasks();
     generateTasks();
@@ -397,7 +395,6 @@ function handleReceivedEmptyObject(tasks){
 // Saves the tasks from localStorage to the api.
 async function saveData(){
     // Shows loader.
-    const header = document.querySelector("header")
     generateLoader();
 
     // Gets the data from localStorage to save to the api. Creates proper empty arrays object if localStorage was empty.
@@ -536,14 +533,6 @@ function setup(){
     addIndexToTasks();
 }
 setup();
-/*// Background for the page.
-document.body.style.backgroundImage = "url('background.jpeg')";
-document.body.style.backgroundSize = "100vw 100vh";
-
-// First time setup.
-generateTasks();
-addIndexToLists();
-addIndexToTasks();*/
 
 function eventListeners(){
     taskSectionsListeners();
